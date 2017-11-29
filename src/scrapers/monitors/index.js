@@ -30,23 +30,28 @@ function scrapeStartPage(url) {
     .set({'image': '//img/@src'})
     .find('#Specs')
     .set({
-      'brand': 'fieldset> dl > dt:contains("Brand") + dd',
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
       'usb': 'fieldset > dl > dt:contains("USB") + dd:html',
       'outletType': 'fieldset > dl > dt:contains("Electrical Outlet Plug Type") + dd',
-      'inputVideoCompatibility': 'fieldset > dl > dt:contains("Input Video Compatibility") + dd',
+      'inputVideoCompatibility': 'fieldset > dl > dt:contains("Input Video Compatibility") + dd:html',
       'inputVideoConnectors': 'fieldset > dl > dt:contains("Input Video Connectors") + dd',
       'compatibility': '//dt[text()="Compatibility"]/following-sibling::dd',
       'displayPort': '//dt[text()="DisplayPort"]/following-sibling::dd',
       'hdcpSupport': '//dt[text()="HDCP Support"]/following-sibling::dd',
       'hdmi': '//dt[text()="HDMI"]/following-sibling::dd',
       'dSub': '//dt[text()="D-Sub"]/following-sibling::dd',
-      'connectors': '//dt[text()="Connectors"]/following-sibling::dd',
+      'connectors': '//dt[text()="Connectors"]/following-sibling::dd:html',
       'dvi': '//dt[text()="DVI"]/following-sibling::dd',
       'powerSupply': '//dt[text()="Power Supply"]/following-sibling::dd',
       'touchscreenInterface': '//dt[text()="Touchscreen Interface"]/following-sibling::dd'
+    })
+    .find('#baBreadcrumbTop')
+    .set({
+      'category': 'dd[5] a',
+      'supplierId': 'dd[7] em',
+      'brand': 'dd[6] a'
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
@@ -101,7 +106,8 @@ function scrapeStartPage(url) {
         console.log(chalk.keyword('orange')('Warning:', 'Product not saved becuase model or brand does not exist:'), chalk.underline.keyword('orange')(product.url));
       }
     })
-    .error(function() {
+    .error(function(err) {
+      console.error(chalk.red('ERROR:', err));
       reject();
     })
     .debug(console.log)

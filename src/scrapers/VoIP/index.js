@@ -15,7 +15,7 @@ var Promise = require('bluebird');
 
 const settings = {
   datastoreNamespace: 'Scraped', // The namespace for the new entity
-  datastoreKind: 'CellPhones' // The kind for the new entity
+  datastoreKind: 'VoIP'          // The kind for the new entity
 };
 
 const datastore = Datastore({projectId: 'gizmo-gild', keyFilename: '../../../config/service-account-key.json'});
@@ -33,18 +33,12 @@ function scrapeStartPage(url) {
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
-      'wifiSupport': '//dt[text()="Wi-Fi Support"]/following-sibling::dd:html',
-      'wifi': '//dt[text()="WiFi"]/following-sibling::dd',
-      'blutoothSupport': '//dt[text()="Bluetooth Support"]/following-sibling::dd',
-      'otherConnection': '//dt[text()="Other Connection"]/following-sibling::dd',
-      'audioConnectors': '//dt[text()="Audio Connectors"]/following-sibling::dd',
-      'usb': '//dt[text()="USB"]/following-sibling::dd',
-      'technology': '//dt[text()="Technology"]/following-sibling::dd',
-      'mobileFreq': '//dt[text()="Mobile Frequencies"]/following-sibling::dd:html',
-      'compatCarrier': '//dt[text()="Compatible Carrier & Service"]/following-sibling::dd',
-      'dataTransfer': '//dt[text()="Data transfer"]/following-sibling::dd:html',
-      'operatingSystem': '//dt[text()="Operating System"]/following-sibling::dd'
+      'ports': '//dt[text()="Ports"]/following-sibling::dd:html',
+      'power': '//dt[text()="Power"]/following-sibling::dd:html',
+      'outletType': '//dt[text()="Electrical Outlet Plug Type"]/following-sibling::dd',
+      'protocols': '//dt[text()="Protocols"]/following-sibling::dd'
     })
+    .find('#baBreadcrumbTop')
     .set({
       'category': 'dd[5] a',
       'supplierId': 'dd[7] em',
@@ -52,17 +46,11 @@ function scrapeStartPage(url) {
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
-      if (typeof data.usb !== 'undefined') {
-        data.usb = data.usb.split(/<br>|,/g);
+      if (typeof data.power !== 'undefined') {
+        data.power = data.power.split(/<br>|,/g);
       }
-      if (typeof data.dataTransfer !== 'undefined') {
-        data.dataTransfer = data.dataTransfer.split(/<br>|,/g);
-      }
-      if (typeof data.wifiSupport !== 'undefined') {
-        data.wifiSupport = data.wifiSupport.split(/<br>|,/g);
-      }
-      if (typeof data.mobileFreq !== 'undefined') {
-        data.mobileFreq = data.mobileFreq.split(/<br>|,/g);
+      if (typeof data.ports !== 'undefined') {
+        data.ports = data.ports.split(/<br>|,/g);
       }
 
       // Adding the current url to our data object
@@ -119,14 +107,9 @@ function scrapeStartPage(url) {
 
 var promiseStack = [];
 
-// No Contract Cell Phones
-for (var i = 1; i < 23; i++) {
-  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100167544%201100858365%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
-  promiseStack.push(scrapeStartPage(urlString));
-}
-// Unlocked Cell Phones
-for (var i = 1; i < 19; i++) {
-  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100167543%201100858365%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
+// VoIP Product Pages
+for (var i = 1; i < 14; i++) {
+  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100164044%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
   promiseStack.push(scrapeStartPage(urlString));
 }
 

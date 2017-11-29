@@ -30,7 +30,6 @@ function scrapeStartPage(url) {
     .set({'image': '//img/@src'})
     .find('#Specs')
     .set({
-      'brand': 'fieldset> dl > dt:contains("Brand") + dd',
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
@@ -41,16 +40,21 @@ function scrapeStartPage(url) {
       'rj45': 'fieldset > dl > dt:contains("RJ45") + dd',
       'frontUsb': 'fieldset > dl > dt:contains("Front USB") + dd:html',
       'rearUsb': 'fieldset > dl > dt:contains("Rear USB") + dd:html',
-      'videoPorts': 'fieldset > dl > dt:contains("Video Ports") + dd',
+      'videoPorts': 'fieldset > dl > dt:contains("Video Ports") + dd:html',
       'hdmi': 'fieldset > dl > dt:contains("HDMI") + dd',
-      'frontAudioPorts': 'fieldset > dl > dt:contains("Front Audio Ports") + dd',
-      'rearAudioPorts': 'fieldset > dl > dt:contains("Rear Audio Ports") + dd',
+      'frontAudioPorts': 'fieldset > dl > dt:contains("Front Audio Ports") + dd:html',
+      'rearAudioPorts': 'fieldset > dl > dt:contains("Rear Audio Ports") + dd:html',
       'acAdapter': 'fieldset > dl > dt:contains("AC Adapter") + dd',
       'outletType': 'fieldset > dl > dt:contains("Electrical Outlet Plug Type") + dd',
       'nfcSupported': 'fieldset > dl > dt:contains("NFC Supported") + dd',
       'virtualReality': 'fieldset > dl > dt:contains("Virtual Reality Ready") + dd',
       'cardReader': 'fieldset > dl > dt:contains("Card Reader") + dd',
       'powerSupply': 'fieldset > dl > dt:contains("Power Supply") + dd'
+    })
+    .set({
+      'category': 'dd[5] a',
+      'supplierId': 'dd[7] em',
+      'brand': 'dd[6] a'
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
@@ -111,7 +115,8 @@ function scrapeStartPage(url) {
         console.log(chalk.keyword('orange')('Warning:', 'Product not saved becuase model or brand does not exist:'), chalk.underline.keyword('orange')(product.url));
       }
     })
-    .error(function() {
+    .error(function(err) {
+      console.error(chalk.red('ERROR:', err));
       reject();
     })
     .debug(console.log)

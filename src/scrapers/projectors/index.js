@@ -30,18 +30,23 @@ function scrapeStartPage(url) {
     .set({'image': '//img/@src'})
     .find('#Specs')
     .set({
-      'brand': 'fieldset> dl > dt:contains("Brand") + dd',
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
       'usb': 'fieldset > dl > dt:contains("USB") + dd:html',
       'outletType': 'fieldset > dl > dt:contains("Electrical Outlet Plug Type") + dd',
-      'inputVideoCompatibility': 'fieldset > dl > dt:contains("Input Video Compatibility") + dd',
-      'inputVideoConnectors': 'fieldset > dl > dt:contains("Input Video Connectors") + dd',
-      'inputAudioConnectors': 'fieldset > dl > dt:contains("Input Audio Connectors") + dd',
-      'outputAudioConnectors': 'fieldset > dl > dt:contains("Output Audio Connectors") + dd',
-      'compatibility': '//dt[text()="Compatibility"]/following-sibling::dd',
+      'inputVideoCompatibility': 'fieldset > dl > dt:contains("Input Video Compatibility") + dd:html',
+      'inputVideoConnectors': 'fieldset > dl > dt:contains("Input Video Connectors") + dd:html',
+      'inputAudioConnectors': 'fieldset > dl > dt:contains("Input Audio Connectors") + dd:html',
+      'outputAudioConnectors': 'fieldset > dl > dt:contains("Output Audio Connectors") + dd:html',
+      'compatibility': '//dt[text()="Compatibility"]/following-sibling::dd:html',
       'powerSupply': '//dt[text()="Power Supply"]/following-sibling::dd'
+    })
+    .find('#baBreadcrumbTop')
+    .set({
+      'category': 'dd[5] a',
+      'supplierId': 'dd[7] em',
+      'brand': 'dd[6] a'
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
@@ -59,6 +64,9 @@ function scrapeStartPage(url) {
       }
       if (typeof data.outputAudioConnectors !== 'undefined') {
         data.outputAudioConnectors = data.outputAudioConnectors.split(/<br>|,/g);
+      }
+      if (typeof data.compatibility !== 'undefined') {
+        data.compatibility = data.compatibility.split(/<br>|,/g);
       }
 
       // Adding the current url to our data object
@@ -102,7 +110,8 @@ function scrapeStartPage(url) {
         console.log(chalk.keyword('orange')('Warning:', 'Product not saved becuase model or brand does not exist:'), chalk.underline.keyword('orange')(product.url));
       }
     })
-    .error(function() {
+    .error(function(err) {
+      console.error(chalk.red('ERROR:', err));
       reject();
     })
     .debug(console.log)

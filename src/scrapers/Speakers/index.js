@@ -15,7 +15,7 @@ var Promise = require('bluebird');
 
 const settings = {
   datastoreNamespace: 'Scraped', // The namespace for the new entity
-  datastoreKind: 'CellPhones' // The kind for the new entity
+  datastoreKind: 'Speakers'          // The kind for the new entity
 };
 
 const datastore = Datastore({projectId: 'gizmo-gild', keyFilename: '../../../config/service-account-key.json'});
@@ -33,36 +33,40 @@ function scrapeStartPage(url) {
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
-      'wifiSupport': '//dt[text()="Wi-Fi Support"]/following-sibling::dd:html',
-      'wifi': '//dt[text()="WiFi"]/following-sibling::dd',
-      'blutoothSupport': '//dt[text()="Bluetooth Support"]/following-sibling::dd',
-      'otherConnection': '//dt[text()="Other Connection"]/following-sibling::dd',
-      'audioConnectors': '//dt[text()="Audio Connectors"]/following-sibling::dd',
-      'usb': '//dt[text()="USB"]/following-sibling::dd',
-      'technology': '//dt[text()="Technology"]/following-sibling::dd',
-      'mobileFreq': '//dt[text()="Mobile Frequencies"]/following-sibling::dd:html',
-      'compatCarrier': '//dt[text()="Compatible Carrier & Service"]/following-sibling::dd',
-      'dataTransfer': '//dt[text()="Data transfer"]/following-sibling::dd:html',
-      'operatingSystem': '//dt[text()="Operating System"]/following-sibling::dd'
+      'outletType': '//dt[text()="Electrical Outlet Plug Type"]/following-sibling::dd',
+      'configuration': '//dt[text()="Configuration"]/following-sibling::dd',
+      'systemRequirements': '//dt[text()="System Requirements"]/following-sibling::dd:html',
+      'features': '//dt[text()="Features"]/following-sibling::dd:html',
+      'packageContents': '//dt[text()="Package Contents"]/following-sibling::dd:html',
+      'wirelessTechnology': '//dt[text()="Wireless Technology"]/following-sibling::dd',
+      'connectivity': '//dt[text()="Connectivity"]/following-sibling::dd',
+      'operatingRange': '//dt[text()="Operating Range"]/following-sibling::dd',
+      'speakerType': '//dt[text()="Speaker Type"]/following-sibling::dd',
+      'compatibility': '//dt[text()="Compatibility"]/following-sibling::dd',
+      'bluetoothVersion': '//dt[text()="Bluetooth Version"]/following-sibling::dd',
+      'inputPorts': '//dt[text()="Input Ports"]/following-sibling::dd',
+      'bluetoothProfile': '//dt[text()="Bluetooth Profile"]/following-sibling::dd'
     })
+    .find('#baBreadcrumbTop')
     .set({
       'category': 'dd[5] a',
       'supplierId': 'dd[7] em',
       'brand': 'dd[6] a'
     })
+    .find('#fullInfo')
+    .set({
+      'overview': '#Overview_Content .itemDesc:html'
+    })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
-      if (typeof data.usb !== 'undefined') {
-        data.usb = data.usb.split(/<br>|,/g);
+      if (typeof data.systemRequirements !== 'undefined') {
+        data.systemRequirements = data.systemRequirements.split(/<br>|,/g);
       }
-      if (typeof data.dataTransfer !== 'undefined') {
-        data.dataTransfer = data.dataTransfer.split(/<br>|,/g);
+      if (typeof data.features !== 'undefined') {
+        data.features = data.features.split(/<br>|,/g);
       }
-      if (typeof data.wifiSupport !== 'undefined') {
-        data.wifiSupport = data.wifiSupport.split(/<br>|,/g);
-      }
-      if (typeof data.mobileFreq !== 'undefined') {
-        data.mobileFreq = data.mobileFreq.split(/<br>|,/g);
+      if (typeof data.packageContents !== 'undefined') {
+        data.packageContents = data.packageContents.split(/<br>|,/g);
       }
 
       // Adding the current url to our data object
@@ -88,7 +92,8 @@ function scrapeStartPage(url) {
         // Assign the data from the product object to our new datastore entity.
         const newProduct = {
           key: productKey,
-          data: product
+          data: product,
+          excludeFromIndexes: ['overview']
         };
 
         // Saves the entity
@@ -99,6 +104,7 @@ function scrapeStartPage(url) {
           })
           .catch((err) => {
             console.error(chalk.red('ERROR:', err));
+            reject();
           });
         }
 
@@ -119,14 +125,15 @@ function scrapeStartPage(url) {
 
 var promiseStack = [];
 
-// No Contract Cell Phones
-for (var i = 1; i < 23; i++) {
-  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100167544%201100858365%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
+// Speaker Pages
+for (var i = 1; i < 36; i++) {
+  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100160895%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
   promiseStack.push(scrapeStartPage(urlString));
 }
-// Unlocked Cell Phones
-for (var i = 1; i < 19; i++) {
-  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100167543%201100858365%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
+
+// Portable Speaker Pages
+for (var i = 1; i < 40; i++) {
+  let urlString = "www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100023083%204814&IsNodeId=1&bop=And&Page=" + i + "&PageSize=96";
   promiseStack.push(scrapeStartPage(urlString));
 }
 

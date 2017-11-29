@@ -30,7 +30,6 @@ function scrapeStartPage(url) {
     .set({'image': '//img/@src'})
     .find('#Specs')
     .set({
-      'brand': 'fieldset> dl > dt:contains("Brand") + dd',
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
@@ -43,6 +42,12 @@ function scrapeStartPage(url) {
       'usb': '//dt[text()="USB"]/following-sibling::dd',
       'service': '//dt[text()="Service"]/following-sibling::dd',
       'hdmi': '//dt[text()="HDMI"]/following-sibling::dd'
+    })
+    .find('#baBreadcrumbTop')
+    .set({
+      'category': 'dd[5] a',
+      'supplierId': 'dd[7] em',
+      'brand': 'dd[6] a'
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
@@ -100,7 +105,8 @@ function scrapeStartPage(url) {
         console.log(chalk.keyword('orange')('Warning:', 'Product not saved becuase model or brand does not exist:'), chalk.underline.keyword('orange')(product.url));
       }
     })
-    .error(function() {
+    .error(function(err) {
+      console.error(chalk.red('ERROR:', err));
       reject();
     })
     .debug(console.log)

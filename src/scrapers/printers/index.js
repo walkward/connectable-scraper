@@ -30,18 +30,23 @@ function scrapeStartPage(url) {
     .set({'image': '//img/@src'})
     .find('#Specs')
     .set({
-      'brand': 'fieldset> dl > dt:contains("Brand") + dd',
       'series': 'fieldset> dl > dt:contains("Series") + dd',
       'model': 'fieldset> dl > dt:contains("Model") + dd',
       'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
-      'usbPorts': '//dt[text()="USB Ports"]/following-sibling::dd',
-      'networkPorts': '//dt[text()="Network Ports"]/following-sibling::dd',
-      'otherPorts': '//dt[text()="Other Ports"]/following-sibling::dd',
+      'usbPorts': '//dt[text()="USB Ports"]/following-sibling::dd:html',
+      'networkPorts': '//dt[text()="Network Ports"]/following-sibling::dd:html',
+      'otherPorts': '//dt[text()="Other Ports"]/following-sibling::dd:html',
       'connectivityTech': '//dt[text()="Connectivity Technology"]/following-sibling::dd',
-      'winCompatible': '//dt[text()="Windows Compatible"]/following-sibling::dd',
-      'macCompatible': '//dt[text()="Macintosh Compatible"]/following-sibling::dd',
+      'winCompatible': '//dt[text()="Windows Compatible"]/following-sibling::dd:html',
+      'macCompatible': '//dt[text()="Macintosh Compatible"]/following-sibling::dd:html',
       'cableType': '//dt[text()="Cable Type"]/following-sibling::dd',
-      'powerRequirements': '//dt[text()="Power Requirements"]/following-sibling::dd'
+      'powerRequirements': '//dt[text()="Power Requirements"]/following-sibling::dd:html'
+    })
+    .find('#baBreadcrumbTop')
+    .set({
+      'category': 'dd[5] a',
+      'supplierId': 'dd[7] em',
+      'brand': 'dd[6] a'
     })
     .then(function(context, data, next) {
       // Split the values which have multiple lines
@@ -105,7 +110,8 @@ function scrapeStartPage(url) {
         console.log(chalk.keyword('orange')('Warning:', 'Product not saved becuase model or brand does not exist:'), chalk.underline.keyword('orange')(product.url));
       }
     })
-    .error(function() {
+    .error(function(err) {
+      console.error(chalk.red('ERROR:', err));
       reject();
     })
     .debug(console.log)

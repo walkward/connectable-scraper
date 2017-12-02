@@ -1,0 +1,20 @@
+module.exports = {
+  brand: '',
+  series: '',
+  model: '',
+  partNumber: '',
+  bluetooth: '',
+  wlan: '',
+  lan: '',
+  usb: [],
+  videoPorts: '',
+  hdmi: '',
+  otherPorts: '',
+  audioPorts: '',
+  service: '',
+  dockingConnector: '',
+  acAdapter: '',
+  cardReader: '',
+  supplierId: '',
+  category: ''
+}

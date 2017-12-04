@@ -11,7 +11,6 @@ const Datastore = require('@google-cloud/datastore');
 const crypto = require('crypto');
 const argv = require('minimist')(process.argv.slice(2));
 const chalk = require('chalk');
-const fs = require('fs');
 const _ = require('lodash');
 const formatUsb = require('../../utils/formatters/usb');
 const formatBluetooth = require('../../utils/formatters/bluetooth');
@@ -60,7 +59,7 @@ function scrapeStartPage(url) {
     })
     .then(function(context, product, next) {
       // Check if product.model was found, we don't want this object otherwise.
-      if (typeof product.model !== 'undefined' && typeof product.model !== 'undefined') {
+      if (typeof product.brand !== 'undefined' && typeof product.model !== 'undefined') {
 
         let laptop = laptopObj;
         laptop.brand = product.brand;
@@ -86,7 +85,6 @@ function scrapeStartPage(url) {
         laptop.stereoJack = typeof product.audioPorts != "undefined" ? _.chain(product.audioPorts).split(/<br>|[\/,•;](?![\dA-z])/g).map(function(o) { return formatStereoJack(o); }).compact().value() : null;
         laptop.esata = null;
         laptop.rj45 = typeof product.lan != "undefined" ? /10\/100\/1000|Ethernet/gi.test(product.lan) : null;
-        laptop.rj11 = null;
         laptop.scrapedArchive = product;
 
         // Creating a product id which uses the model # by default, but will use the partnumber

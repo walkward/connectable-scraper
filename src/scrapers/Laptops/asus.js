@@ -12,6 +12,7 @@ const chalk = require('chalk')
 const _ = require('lodash')
 const datastoreSave = require('../../utils/datastoreSave')
 const formatUsb = require('../../utils/formatters/usb')
+const formatWlan = require('../../utils/formatters/wlan')
 const formatBluetooth = require('../../utils/formatters/bluetooth')
 const formatHdmi = require('../../utils/formatters/hdmi')
 const formatStereoJack = require('../../utils/formatters/stereoJack')
@@ -25,7 +26,7 @@ var Promise = require('bluebird')
 const settings = {
   datastoreNamespace: 'Scraped', // The namespace for the new entity
   datastoreKind: 'Laptops',      // The kind for the new entity
-  mode: argv.dry = false         // Used for running the scraper without saving data
+  mode: argv.dry || false        // Used for running the scraper without saving data
 }
 
 // Custom function for identifying Series in ASUS laptops
@@ -72,10 +73,8 @@ function asusSeries (title) {
 function scrapeStartPage (url) {
   return new Promise((resolve, reject) => {
     osmosis.get(url)
-      .find('.all-model-list > li > a')
-      .follow('@href')
-      .find('#lispecifications > a')
-      .follow('@href')
+      .follow('.all-model-list > li > a@href')
+      .follow('#lispecifications > a@href')
       .set({
         'interface': '//div[@id="spec-area"]/ul[@class="product-spec"]/li/span[text()="Interface"]/following-sibling::div:html',
         'wlan': '//div[@id="spec-area"]/ul[@class="product-spec"]/li/span[text()="Networking"]/following-sibling::div:html',
@@ -89,37 +88,36 @@ function scrapeStartPage (url) {
         laptop.model =            typeof product.title !== 'undefined' ? _.chain(product.title).replace(/\(([^)]+)\)/, '').replace(/ASUS|Laptop/g, '').trim().value() : null
         laptop.series =           typeof product.title !== 'undefined' ? asusSeries(product.title) : null
         laptop.category =         typeof product.category !== 'undefined' ? product.category.replace(/[s]\b/gi, '') : 'Laptop'
-        laptop.wlan =             typeof product.wlan !== 'undefined' ? _.chain(product.wlan.match(/802\.11[\s]?([acbgn/])*/gi)).toLower().replace(' ', '').value() : null
-        laptop.acAdapter =        typeof product.powerAdapter !== 'undefined' ? _.parseInt(product.powerAdapter.match(/[\d]{2,3}(?=\sW)/gi)) : null
-        laptop.bluetooth =        typeof product.wlan !== 'undefined' ? _.chain(product.wlan).replace('<strong>Bluetooth</strong>', '').split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatBluetooth(o) }).uniq().compact().value() : null
-        laptop.hdmi =             typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatHdmi(o) }).uniq().compact().value() : null
-        laptop.usb =              typeof product.interface !== 'undefined' ? _.chain(product.interface).unescape().split(/<br>|[/,•;](?![\dA-z])(?=.*USB)/gi).map(function (o) { return formatUsb(o) }).uniq().compact().value() : null
-        laptop.displayPort =      typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatDisplayPort(o) }).uniq().compact().value() : null
-        laptop.vga =              typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatVga(o) }).uniq().compact().value() : null
-        laptop.thunderbolt =      typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatThunderbolt(o) }).uniq().compact().value() : null
+        laptop.wlan =             typeof product.wlan !== 'undefined' ? formatWlan(product.wlan) : [null]
+        laptop.acAdapter =        typeof product.powerAdapter !== 'undefined' ? product.powerAdapter : null
+        laptop.bluetooth =        typeof product.wlan !== 'undefined' ? _.chain(product.wlan).replace('<strong>Bluetooth</strong>', '').split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatBluetooth(o) }).uniq().compact().head().value() : null
+        laptop.hdmi =             typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatHdmi(o) }).castArray().uniq().compact().value() : [null]
+        laptop.usb =              typeof product.interface !== 'undefined' ? _.chain(product.interface).unescape().split(/<br>|[/,•;](?![\dA-z])(?=.*USB)/gi).map(function (o) { return formatUsb(o) }).uniq().compact().value() : [null]
+        laptop.displayPort =      typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatDisplayPort(o) }).castArray().uniq().compact().value() : [null]
+        laptop.vga =              typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatVga(o) }).castArray().uniq().compact().value() : [null]
+        laptop.thunderbolt =      typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatThunderbolt(o) }).uniq().compact().toString().value() : null
         laptop.primaryPower =     typeof product.powerAdapter !== 'undefined' ? _.head(product.powerAdapter.match(/ø[\d.\s(mm)]+/gi)) : null
-        laptop.toslink =          typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatToslink(o) }).uniq().compact().value() : null
-        laptop.spdif =            typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatSpdif(o) }).uniq().compact().value() : null
-        laptop.stereoJack =       typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatStereoJack(o) }).uniq().compact().value() : null
+        laptop.toslink =          typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatToslink(o) }).castArray().uniq().compact().value() : [null]
+        laptop.spdif =            typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatSpdif(o) }).uniq().compact().head().value() : null
+        laptop.stereoJack =       typeof product.interface !== 'undefined' ? _.chain(product.interface).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatStereoJack(o) }).castArray().uniq().compact().value() : [null]
         laptop.rj45 =             typeof product.interface !== 'undefined' && /10\/100|Ethernet|RJ45/i.test(product.interface) ? true : null
         laptop.scrapedUrl = context.doc().request.href
         laptop.scrapedHost = context.doc().request.host
         laptop.scrapedArchive = product
 
+        product = laptop
+        next(context, product)
+      })
+      .then(function (context, product, next, done) {
         // Saves the entity
-        datastoreSave(laptop, settings)
-          .then((msg) => {
-            next(context, product)
-          })
+        datastoreSave(product, settings)
+        done()
       })
       .error(function (err) {
         console.error(chalk.red('ERROR:', err))
         reject(err)
       })
       .debug(console.log)
-      .done(function () {
-        resolve()
-      })
   })
 }
 

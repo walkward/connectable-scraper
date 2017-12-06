@@ -18,14 +18,13 @@ var Promise = require('bluebird')
 const settings = {
   datastoreNamespace: 'Scraped', // The namespace for the new entity
   datastoreKind: 'Laptops',      // The kind for the new entity
-  mode: argv.dry = false         // Used for running the scraper without saving data
+  mode: argv.dry || false        // Used for running the scraper without saving data
 }
 
 function scrapeStartPage (url) {
   return new Promise((resolve, reject) => {
     osmosis.get(url)
-      .find('.levelnew > form > a')
-      .follow('@href')
+      .follow('.levelnew > form > a@href')
       .set({
         'acPower': '//tr/td[text()="AC Power"]/following-sibling::td',
         'serialPort': '//tr/td[text()="Serial Port"]/following-sibling::td',
@@ -59,12 +58,12 @@ function scrapeStartPage (url) {
         laptop.acAdapter =    typeof product.acPower !== 'undefined' ? product.acPower : null
         laptop.bluetooth =    typeof product.bluetooth !== 'undefined' && !/No/i.test(product.bluetooth) ? 'Bluetooth ' + product.bluetooth.match(/\d\.\d/) : null
         laptop.hdmi =         typeof product.hdmi !== 'undefined' ? _.chain(product.hdmi).split(/<br>|[/,•;](?![\dA-z])/g).map(function (o) { return formatHdmi(o) }).uniq().compact().value() : null
-        laptop.usb =          typeof product.usbPorts !== 'undefined' ? _.chain(product.usbPorts).unescape().split(/<br>|[/,•;](?![\dA-z])(?=.*USB)/gi).map(function (o) { return formatUsb(o) }).uniq().compact().value() : null
-        laptop.displayPort =  typeof product.displayPort !== 'undefined' && /Yes/i.test(product.displayPort) ? [ports.displayPort.types.default.name] : null
+        laptop.usb =          typeof product.usbPorts !== 'undefined' ? _.chain(product.usbPorts).unescape().split(/<br>|[/,•;](?![\dA-z])(?=.*USB)/gi).map(function (o) { return formatUsb(o) }).uniq().compact().value() : [null]
+        laptop.displayPort =  typeof product.displayPort !== 'undefined' && /Yes/i.test(product.displayPort) ? [ports.displayPort.types.default.name] : [null]
         laptop.displayPort =  typeof product.displayPort !== 'undefined' && /Mini/i.test(product.displayPort) ? [ports.displayPort.types.mini.name] : laptop.displayPort
-        laptop.vga =          typeof product.vgaPort !== 'undefined' && /Yes/i.test(product.vgaPort) ? [ports.vga.types.default.name] : null
-        laptop.dvi =          typeof product.dvi !== 'undefined' && /Yes/i.test(product.dvi) ? [ports.dvi.types.default.name] : null
-        laptop.spdif =        typeof product.spdifOut !== 'undefined' && /Yes/i.test(product.spdifOut) ? [ports.spdif.types.default.name] : null
+        laptop.vga =          typeof product.vgaPort !== 'undefined' && /Yes/i.test(product.vgaPort) ? [ports.vga.types.default.name] : [null]
+        laptop.dvi =          typeof product.dvi !== 'undefined' && /Yes/i.test(product.dvi) ? [ports.dvi.types.default.name] : [null]
+        laptop.spdif =        typeof product.spdifOut !== 'undefined' && /Yes/i.test(product.spdifOut) ? true : null
         laptop.firewire =     typeof product.firewirePort !== 'undefined' ? formatFirewire(product.firewirePort) : null
         laptop.stereoJack =   typeof product.micPort !== 'undefined' && /Yes/i.test(product.micPort) ? [ports.stereoJack.types.trs35m.name] : []
         if (typeof product.headphonePort !== 'undefined' && /Yes/i.test(product.headphonePort)) { laptop.stereoJack.push(ports.stereoJack.types.trrs35m.name) }
@@ -79,20 +78,19 @@ function scrapeStartPage (url) {
         laptop.scrapedUrl = context.doc().request.href
         laptop.scrapedHost = context.doc().request.host
 
-        // Saves the entity
-        datastoreSave(laptop, settings)
-          .then((msg) => {
-            next(context, product)
-          })
+        product = laptop
+        next(context, product)
       })
-      .error((err) => {
+      .then(function (context, product, next, done) {
+        // Saves the entity
+        datastoreSave(product, settings)
+        done()
+      })
+      .error(function (err) {
         console.error(chalk.red('ERROR:', err))
         reject(err)
       })
       .debug(console.log)
-      .done(() => {
-        resolve()
-      })
   })
 }
 

@@ -9,19 +9,37 @@
     "url": "https://github.com/scotch-io/node-web-scraper"
   },
   "scripts": {
-    "scrape:laptops": "node src/scrapers/laptops.js",
     "createKeywords": "node src/utils/createKeywords.js",
-    "delete:prop": "node src/utils/deleteProp.js"
+    "delete:prop": "node src/utils/deleteProp.js",
+    "cleanup-indexes": "gcloud datastore cleanup-indexes ./config/index.yaml",
+    "update:algolia": "gsutil cp -p gs://dataprep-staging-b86c479f-10ae-4592-96be-2127741b0065/walker@gizmogild.com/jobrun/AlgoliaMaster.json ./data/AlgoliaMaster.json && node src/utils/algoliaUpload.js",
+    "update:items": "bq extract --destination_format=NEWLINE_DELIMITED_JSON Cleaned.Items gs://gizmo-gild.appspot.com/bigquery/items.json && gsutil cp -p gs://gizmo-gild.appspot.com/bigquery/items.json ./data/items.json && node src/utils/importItems.js",
+    "export:Laptops": "gcloud beta datastore export --namespaces='Scraped' --kinds='Laptops' gs://gizmo-gild.appspot.com",
+    "export:Desktops": "gcloud beta datastore export --namespaces='Scraped' --kinds='Desktops' gs://gizmo-gild.appspot.com",
+    "export:Monitors": "gcloud beta datastore export --namespaces='Scraped' --kinds='Monitors' gs://gizmo-gild.appspot.com",
+    "bigquery:Laptops": "bq load --source_format=DATASTORE_BACKUP --replace scrapedData.Laptops gs://gizmo-gild.appspot.com/2017-12-12T16:02:30_29672/namespace_Scraped/kind_Laptops/namespace_Scraped_kind_Laptops.export_metadata",
+    "bigquery:Desktops": "bq load --source_format=DATASTORE_BACKUP --replace scrapedData.Desktops gs://gizmo-gild.appspot.com/2017-12-05T07:49:07_22440/namespace_Scraped/kind_Desktops/namespace_Scraped_kind_Desktops.export_metadata",
+    "bigquery:Monitors": "bq load --source_format=DATASTORE_BACKUP --replace scrapedData.Monitors gs://gizmo-gild.appspot.com/2017-12-09T19:59:00_45800/namespace_Scraped/kind_Monitors/namespace_Scraped_kind_Monitors.export_metadata"
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.1.0",
+    "ajv": "^5.5.1",
+    "algoliasearch": "^3.24.7",
     "bluebird": "^3.5.1",
     "chalk": "^2.3.0",
     "cheerio": "latest",
     "express": "latest",
+    "ldjson-stream": "^1.2.1",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "osmosis": "^1.1.4",
     "request": "latest"
+  },
+  "devDependencies": {
+    "eslint": "^4.12.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1"
   }
 }

@@ -31,31 +31,26 @@ const settings = {
 function scrapeStartPage (url) {
   return new Promise((resolve, reject) => {
     osmosis.get(url)
-      .find('.items-view > .item-container > .item-info > .item-title')
-      .follow('@href')
-      .set({'image': '//span[@class="mainSlide"]/img/@src'})
-      .find('#Specs')
+      .follow('.items-view > .item-container > .item-info > .item-title@href')
       .set({
-        'series': 'fieldset> dl > dt:contains("Series") + dd',
-        'model': 'fieldset > dl > dt:contains("Model") + dd',
-        'partNumber': 'fieldset> dl > dt:contains("Part Number") + dd',
-        'bluetooth': 'fieldset > dl > dt:contains("Bluetooth") + dd',
-        'wlan': 'fieldset > dl > dt:contains("WLAN") + dd',
-        'ethernet': 'fieldset > dl > dt:contains("Ethernet") + dd',
-        'lanSpeed': 'fieldset > dl > dt:contains("LAN Speed") + dd',
-        'rj45': 'fieldset > dl > dt:contains("RJ45") + dd',
-        'frontUsb': 'fieldset > dl > dt:contains("Front USB") + dd:html',
-        'rearUsb': 'fieldset > dl > dt:contains("Rear USB") + dd:html',
-        'videoPorts': 'fieldset > dl > dt:contains("Video Ports") + dd:html',
-        'frontAudio': 'fieldset > dl > dt:contains("Front Audio Ports") + dd:html',
-        'rearAudio': 'fieldset > dl > dt:contains("Rear Audio Ports") + dd:html',
-        'acAdapter': 'fieldset > dl > dt:contains("AC Adapter") + dd',
-        'powerSupply': 'fieldset > dl > dt:contains("Power Supply") + dd'
-      })
-      .find('#baBreadcrumbTop')
-      .set({
-        'category': 'dd[5] a',
-        'brand': 'dd[6] a'
+        'image': '//span[@class="mainSlide"]/img/@src',
+        'series': '#Specs fieldset> dl > dt:contains("Series") + dd',
+        'model': '#Specs fieldset > dl > dt:contains("Model") + dd',
+        'partNumber': '#Specs fieldset> dl > dt:contains("Part Number") + dd',
+        'bluetooth': '#Specs fieldset > dl > dt:contains("Bluetooth") + dd',
+        'wlan': '#Specs fieldset > dl > dt:contains("WLAN") + dd',
+        'ethernet': '#Specs fieldset > dl > dt:contains("Ethernet") + dd',
+        'lanSpeed': '#Specs fieldset > dl > dt:contains("LAN Speed") + dd',
+        'rj45': '#Specs fieldset > dl > dt:contains("RJ45") + dd',
+        'frontUsb': '#Specs fieldset > dl > dt:contains("Front USB") + dd:html',
+        'rearUsb': '#Specs fieldset > dl > dt:contains("Rear USB") + dd:html',
+        'videoPorts': '#Specs fieldset > dl > dt:contains("Video Ports") + dd:html',
+        'frontAudio': '#Specs fieldset > dl > dt:contains("Front Audio Ports") + dd:html',
+        'rearAudio': '#Specs fieldset > dl > dt:contains("Rear Audio Ports") + dd:html',
+        'acAdapter': '#Specs fieldset > dl > dt:contains("AC Adapter") + dd',
+        'powerSupply': '#Specs fieldset > dl > dt:contains("Power Supply") + dd',
+        'category': '#baBreadcrumbTop dd[5] a',
+        'brand': '#baBreadcrumbTop dd[6] a'
       })
       .then((context, product, next) => {
         // Check if product.model was found, we don't want this object otherwise.
@@ -96,27 +91,26 @@ function scrapeStartPage (url) {
         item.scrapedHost    = context.doc().request.host
         item.scrapedArchive = product
 
-        // Saves the entity
-        datastoreSave(item, settings)
-          .then((msg) => {
-            next(context, product)
-          })
+        product = item
+        next(context, product)
       })
-      .error((err) => {
+      .then(function (context, product, next, done) {
+        // Saves the entity
+        datastoreSave(product, settings)
+        done()
+      })
+      .error(function (err) {
         console.error(chalk.red('ERROR:', err))
         reject(err)
       })
       .debug(console.log)
-      .done(function () {
-        resolve()
-      })
   })
 }
 
 var promiseStack = []
 
 // Desktop Computer Pages
-for (var i = 1; i < 100; i++) {
+for (var i = 0; i < 100; i++) {
   let urlString = 'www.newegg.com/Product/ProductList.aspx?Submit=ENE&N=100019096%201100858365%204814&IsNodeId=1&bop=And&Page=' + i + '&PageSize=96'
   promiseStack.push(scrapeStartPage(urlString))
 }

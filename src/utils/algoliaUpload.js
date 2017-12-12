@@ -1,12 +1,13 @@
-const algoliasearch = require('algoliasearch')
 const fs = require('fs')
+const path = require('path')
+const algoliasearch = require('algoliasearch')
 var ldj = require('ldjson-stream')
 
 const client = algoliasearch('F90WOGD1GY', '4c563ccc4b9ed8f99fb96f1edec5b8b0')
 const index = client.initIndex('master')
 
 // Writing the data to Alogilia for indexing
-fs.createReadStream('../../data/MonitorsAlgolia.json')
+fs.createReadStream(path.resolve('./data/AlgoliaMaster.json'))
   .pipe(ldj.parse())
   .on('data', function (obj) {
     index.addObject({

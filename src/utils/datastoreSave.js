@@ -26,7 +26,7 @@ function saveEntities (entities) {
 
   return new Promise((resolve, reject) => {
     // @TODO Needs to incorporate the --overwrite options which will allow for datastore 'saving' instead of 'inserting'
-    datastore.insert(entities).then((msg) => {
+    datastore.save(entities).then((msg) => {
       // Logging the save results
       console.log(chalk.green(JSON.stringify(msg)))
       resolve(msg)

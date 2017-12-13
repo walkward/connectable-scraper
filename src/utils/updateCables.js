@@ -13,9 +13,11 @@ var Promise = require('bluebird')
 
 const datastore = Datastore({projectId: 'gizmo-gild', keyFilename: path.resolve('./config/service-account-key.json')})
 const settings = {
-  datastoreKind: 'items'
+  datastoreKind: 'cables'
 }
+
 let items = []
+let requests = 0
 
 /**
  * Batch Save Entities
@@ -37,25 +39,30 @@ function saveEntities (entities) {
   })
 }
 
-fs.createReadStream(path.resolve('./data/items.json'))
+fs.createReadStream(path.resolve('./data/cables.json'))
   .pipe(ldj.parse())
   .on('data', function (obj) {
-    const entityName = obj.id
-    const productKey = datastore.key([settings.datastoreKind, entityName])
+    return new Promise((resolve, reject) => {
+      const productKey = datastore.key([settings.datastoreKind])
 
-    // Assign the data from the product object to our new datastore entity.
-    const newProduct = {
-      key: productKey,
-      data: obj
-    }
+      // Assign the data from the product object to our new datastore entity.
+      const newProduct = {
+        key: productKey,
+        data: obj
+      }
 
-    items.push(newProduct)
+      items.push(newProduct)
 
-    if (items.length >= 500) {
-      let entities = items
-      // resetting the items array
-      items = []
-      // Batch save the entity's we're working with
-      saveEntities(entities)
-    }
+      if (items.length >= 1) {
+        let entities = items
+        // resetting the items array
+        items = []
+        // Batch save the entity's we're working with
+        Promise.delay(++requests * 500).then(() => {
+          saveEntities(entities).then((msg) => {
+            resolve(msg)
+          })
+        })
+      }
+    })
   })

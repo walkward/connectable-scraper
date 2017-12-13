@@ -61,6 +61,11 @@ module.exports = {
         aliases: [],
         backwards: true
       },
+      typeB30: {
+        name: 'USB 3.0 Type-B',
+        aliases: [],
+        backwards: true
+      },
       typeC: {
         name: 'USB Type-C',
         aliases: ['USB-C'],
@@ -95,6 +100,14 @@ module.exports = {
       microBSuper: {
         name: 'USB Micro-B Superspeed',
         aliases: []
+      },
+      esata: {
+        name: 'USB eSATA',
+        aliases: []
+      },
+      esata30: {
+        name: 'USB 3.0 eSATA',
+        aliases: []
       }
     }
   },
@@ -125,11 +138,11 @@ module.exports = {
     deprecated: false,
     types: {
       composite: {
-        name: 'Composite',
+        name: 'Composite RCA',
         aliases: []
       },
       component: {
-        name: 'Component',
+        name: 'Component RCA',
         aliases: []
       }
     }

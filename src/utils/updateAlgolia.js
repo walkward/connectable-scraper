@@ -12,9 +12,13 @@ fs.createReadStream(path.resolve('./data/AlgoliaMaster.json'))
   .on('data', function (obj) {
     index.addObject({
       objectID: obj.id,
-      keywords: obj.keywords,
       image: obj.image,
-      title: obj.title
+      title: obj.title,
+      model: obj.model,
+      partNumber: obj.partNumber,
+      brand: obj.brand,
+      series: obj.series,
+      category: obj.category
     }, function (err, content) {
       console.log('objectID=' + content.objectID)
       if (err) {
@@ -22,9 +26,3 @@ fs.createReadStream(path.resolve('./data/AlgoliaMaster.json'))
       }
     })
   })
-
-// const chunks = _.chunk(records, 1000)
-//
-// chunks.map(function (batch) {
-//   return index.addObjects(batch)
-// })

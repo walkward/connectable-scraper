@@ -1,0 +1,11 @@
+{ "application": "Daisy Chaining", "api": "/match/hub" }
+{ "application": "Mirroring", "api": "/match/video" }
+{ "application": "Charging", "api": "/match/charging" }
+{ "application": "Audio", "api": "/match/audio" }
+{ "application": "Power", "api": "/match/power" }
+{ "application": "Wifi", "api": "/match/wifi" }
+{ "application": "Ethernet", "api": "/match/ethernet" }
+{ "application": "Phone", "api": "/match/phone" }
+{ "application": "Data", "api": "/match/data" }
+{ "application": "Backup Data", "api": "/match/data" }
+{ "application": "Upload Media", "api": "/match/data" }

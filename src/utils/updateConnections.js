@@ -13,7 +13,7 @@ var Promise = require('bluebird')
 
 const datastore = Datastore({projectId: 'gizmo-gild', keyFilename: path.resolve('./config/service-account-key.json')})
 const settings = {
-  datastoreKind: 'cables'
+  datastoreKind: 'connections'
 }
 
 let items = []
@@ -39,18 +39,22 @@ function saveEntities (entities) {
   })
 }
 
-fs.createReadStream(path.resolve('./data/cables.json'))
+fs.createReadStream(path.resolve('./data/connections.json'))
   .pipe(ldj.parse())
   .on('data', function (obj) {
     return new Promise((resolve, reject) => {
       const productKey = datastore.key([settings.datastoreKind])
 
-      obj.connectors = obj.connectors.split(', ')
+      let newObj = {
+        name: obj.name.split(', '),
+        applications: obj.applications.split(', '),
+        default: obj.default
+      }
 
       // Assign the data from the product object to our new datastore entity.
       const newProduct = {
         key: productKey,
-        data: obj
+        data: newObj
       }
 
       items.push(newProduct)

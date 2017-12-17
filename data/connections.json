@@ -1,0 +1,3 @@
+{ "name": "Desktop, Monitor", "applications": "Mirroring, Audio", "default": "Mirroring" }
+{ "name": "Laptop, Monitor", "applications": "Mirroring, Charging, Audio", "default": "Mirroring" }
+{ "name": "Monitor, Monitor", "applications": "Daisy Chaining", "default": "Daisy Chaining" }

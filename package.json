@@ -14,6 +14,8 @@
     "indexes:create": "echo Y | gcloud datastore create-indexes ./config/index.yaml",
     "indexes:cleanup": "gcloud datastore cleanup-indexes ./config/index.yaml",
     "update:cables": "node src/utils/updateCables.js",
+    "update:connections": "node src/utils/updateConnections.js",
+    "update:applications": "node src/utils/updateApplications.js",
     "update:algolia": "gsutil cp -p gs://dataprep-staging-b86c479f-10ae-4592-96be-2127741b0065/walker@gizmogild.com/jobrun/AlgoliaMaster.json ./data/AlgoliaMaster.json && node src/utils/updateAlgolia.js",
     "update:items": "bq extract --destination_format=NEWLINE_DELIMITED_JSON Cleaned.Items gs://gizmo-gild.appspot.com/bigquery/items.json && gsutil cp -p gs://gizmo-gild.appspot.com/bigquery/items.json ./data/items.json && node src/utils/updateItems.js",
     "export:Laptops": "gcloud beta datastore export --namespaces='Scraped' --kinds='Laptops' gs://gizmo-gild.appspot.com",
